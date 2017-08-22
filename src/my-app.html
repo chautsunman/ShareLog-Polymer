@@ -9,12 +9,15 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 -->
 
 <link rel="import" href="../bower_components/polymer/polymer-element.html">
+<link rel="import" href="../bower_components/polymerfire/firebase-app.html">
+<link rel="import" href="../bower_components/polymerfire/firebase-auth.html">
 <link rel="import" href="../bower_components/app-layout/app-drawer/app-drawer.html">
 <link rel="import" href="../bower_components/app-layout/app-drawer-layout/app-drawer-layout.html">
 <link rel="import" href="../bower_components/app-layout/app-header/app-header.html">
 <link rel="import" href="../bower_components/app-layout/app-header-layout/app-header-layout.html">
 <link rel="import" href="../bower_components/app-layout/app-scroll-effects/app-scroll-effects.html">
 <link rel="import" href="../bower_components/app-layout/app-toolbar/app-toolbar.html">
+<link rel="import" href="../bower_components/paper-button/paper-button.html">
 <link rel="import" href="../bower_components/app-route/app-location.html">
 <link rel="import" href="../bower_components/app-route/app-route.html">
 <link rel="import" href="../bower_components/iron-pages/iron-pages.html">
@@ -68,46 +71,64 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       }
     </style>
 
-    <app-location route="{{route}}" url-space-regex="^[[rootPath]]"></app-location>
-    <app-route
-        route="{{route}}"
-        pattern="[[rootPath]]:page"
-        data="{{routeData}}"
-        tail="{{subroute}}"></app-route>
+    <firebase-app
+      api-key="AIzaSyAELXBVivbvZeNMXbh9qnX9T3fxjJSg1VA",
+      auth-domain="share-log-c2f07.firebaseapp.com",
+      database-url="https://share-log-c2f07.firebaseio.com",
+      storage-bucket="share-log-c2f07.appspot.com",
+      messaging-sender-id="161699951866">
+    </firebase-app>
 
-    <app-drawer-layout fullbleed narrow="{{narrow}}">
-      <!-- Drawer content -->
-      <app-drawer id="drawer" slot="drawer" swipe-open="[[narrow]]">
-        <app-toolbar>Menu</app-toolbar>
-        <iron-selector selected="[[page]]" attr-for-selected="name" class="drawer-list" role="navigation">
-          <a name="view1" href="[[rootPath]]view1">View One</a>
-          <a name="view2" href="[[rootPath]]view2">View Two</a>
-          <a name="view3" href="[[rootPath]]view3">View Three</a>
-        </iron-selector>
-      </app-drawer>
+    <firebase-auth id="auth" user="{{user}}" provider="google"></firebase-auth>
 
-      <!-- Main content -->
-      <app-header-layout has-scrolling-region>
+    <template is="dom-if" if="[[!user]]">
+      <paper-button raised on-click="googleSignIn">Google+ Sign In</paper-button>
+    </template>
 
-        <app-header slot="header" condenses reveals effects="waterfall">
-          <app-toolbar>
-            <paper-icon-button icon="my-icons:menu" drawer-toggle></paper-icon-button>
-            <div main-title>My App</div>
-          </app-toolbar>
-        </app-header>
+    <template is="dom-if" if="[[user]]">
+      <app-location route="{{route}}" url-space-regex="^[[rootPath]]"></app-location>
+      <app-route
+          route="{{route}}"
+          pattern="[[rootPath]]:page"
+          data="{{routeData}}"
+          tail="{{subroute}}"></app-route>
 
-        <iron-pages
-            selected="[[page]]"
-            attr-for-selected="name"
-            fallback-selection="view404"
-            role="main">
-          <my-view1 name="view1"></my-view1>
-          <my-view2 name="view2"></my-view2>
-          <my-view3 name="view3"></my-view3>
-          <my-view404 name="view404"></my-view404>
-        </iron-pages>
-      </app-header-layout>
-    </app-drawer-layout>
+      <app-drawer-layout fullbleed narrow="{{narrow}}">
+        <!-- Drawer content -->
+        <app-drawer id="drawer" slot="drawer" swipe-open="[[narrow]]">
+          <app-toolbar>Menu</app-toolbar>
+          <iron-selector selected="[[page]]" attr-for-selected="name" class="drawer-list" role="navigation">
+            <a name="view1" href="[[rootPath]]view1">View One</a>
+            <a name="view2" href="[[rootPath]]view2">View Two</a>
+            <a name="view3" href="[[rootPath]]view3">View Three</a>
+          </iron-selector>
+        </app-drawer>
+
+        <!-- Main content -->
+        <app-header-layout has-scrolling-region>
+
+          <app-header slot="header" condenses reveals effects="waterfall">
+            <app-toolbar>
+              <paper-icon-button icon="my-icons:menu" drawer-toggle></paper-icon-button>
+              <div main-title>My App</div>
+
+              <paper-button on-click="signOut">Sign Out</paper-button>
+            </app-toolbar>
+          </app-header>
+
+          <iron-pages
+              selected="[[page]]"
+              attr-for-selected="name"
+              fallback-selection="view404"
+              role="main">
+            <my-view1 name="view1"></my-view1>
+            <my-view2 name="view2"></my-view2>
+            <my-view3 name="view3"></my-view3>
+            <my-view404 name="view404"></my-view404>
+          </iron-pages>
+        </app-header-layout>
+      </app-drawer-layout>
+    </template>
   </template>
 
   <script>
@@ -131,8 +152,29 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
       static get observers() {
         return [
+          '_userChanged(user)',
           '_routePageChanged(routeData.page)',
         ];
+      }
+
+      googleSignIn() {
+        this.$.auth.signInWithPopup()
+            .then((response) => {
+              console.log(response);
+            })
+            .catch((error) => {
+              console.log(error);
+            });
+      }
+
+      signOut() {
+        this.$.auth.signOut();
+      }
+
+      _userChanged(user) {
+        if (user) {
+          this.page = 'view1';
+        }
       }
 
       _routePageChanged(page) {
@@ -141,8 +183,9 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         this.page = page || 'view1';
 
         // Close a non-persistent drawer when the page & route are changed.
-        if (!this.$.drawer.persistent) {
-          this.$.drawer.close();
+        let drawer = this.shadowRoot.querySelector('#drawer');
+        if (drawer && !drawer.persistent) {
+          drawer.close();
         }
       }
 
