@@ -1,0 +1,28 @@
+<link rel="import" href="../bower_components/polymer/polymer-element.html">
+<link rel="import" href="shared-styles.html">
+
+<dom-module id="log-item">
+  <template>
+    <style include="shared-styles">
+
+    </style>
+
+    <div class="card"><a href$="/log-detail/[[log.key]]">[[log.title]]</a></div>
+  </template>
+
+  <script>
+    class LogItem extends Polymer.Element {
+      static get is() {
+        return 'log-item';
+      }
+
+      static get properties() {
+        return {
+          log: Object
+        };
+      }
+    }
+
+    window.customElements.define(LogItem.is, LogItem);
+  </script>
+</dom-module>

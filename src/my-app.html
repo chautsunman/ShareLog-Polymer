@@ -25,10 +25,8 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 <link rel="import" href="../bower_components/paper-icon-button/paper-icon-button.html">
 <link rel="import" href="my-icons.html">
 
-<link rel="lazy-import" href="my-view1.html">
-<link rel="lazy-import" href="my-view2.html">
-<link rel="lazy-import" href="my-view3.html">
-<link rel="lazy-import" href="my-view404.html">
+<link rel="lazy-import" href="log-list.html">
+<link rel="lazy-import" href="log-detail.html">
 
 <dom-module id="my-app">
   <template>
@@ -98,9 +96,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         <app-drawer id="drawer" slot="drawer" swipe-open="[[narrow]]">
           <app-toolbar>Menu</app-toolbar>
           <iron-selector selected="[[page]]" attr-for-selected="name" class="drawer-list" role="navigation">
-            <a name="view1" href="[[rootPath]]view1">View One</a>
-            <a name="view2" href="[[rootPath]]view2">View Two</a>
-            <a name="view3" href="[[rootPath]]view3">View Three</a>
+            <a name="log-list" href="[[rootPath]]log-list">Home</a>
           </iron-selector>
         </app-drawer>
 
@@ -119,12 +115,10 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           <iron-pages
               selected="[[page]]"
               attr-for-selected="name"
-              fallback-selection="view404"
+              fallback-selection=""
               role="main">
-            <my-view1 name="view1"></my-view1>
-            <my-view2 name="view2"></my-view2>
-            <my-view3 name="view3"></my-view3>
-            <my-view404 name="view404"></my-view404>
+            <log-list name="log-list" user="[[user]]"></log-list>
+            <log-detail name="log-detail" user="[[user]]" route="[[subroute]]"></log-detail>
           </iron-pages>
         </app-header-layout>
       </app-drawer-layout>
@@ -173,14 +167,14 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
       _userChanged(user) {
         if (user) {
-          this.page = 'view1';
+          this.page = 'log-list';
         }
       }
 
       _routePageChanged(page) {
         // If no page was found in the route data, page will be an empty string.
         // Deault to 'view1' in that case.
-        this.page = page || 'view1';
+        this.page = page || 'log-list';
 
         // Close a non-persistent drawer when the page & route are changed.
         let drawer = this.shadowRoot.querySelector('#drawer');
@@ -191,16 +185,12 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
       _pageChanged(page) {
         // Load page import on demand. Show 404 page if fails
-        var resolvedPageUrl = this.resolveUrl('my-' + page + '.html');
+        var resolvedPageUrl = this.resolveUrl(page + '.html');
         Polymer.importHref(
             resolvedPageUrl,
             null,
-            this._showPage404.bind(this),
+            null,
             true);
-      }
-
-      _showPage404() {
-        this.page = 'view404';
       }
     }
 

@@ -1,0 +1,88 @@
+<link rel="import" href="../bower_components/polymer/polymer-element.html">
+<link rel="import" href="../bower_components/iron-list/iron-list.html">
+<link rel="import" href="../bower_components/iron-ajax/iron-ajax.html">
+<link rel="import" href="../bower_components/paper-fab/paper-fab.html">
+<link rel="import" href="../bower_components/iron-icons/iron-icons.html">
+<link rel="import" href="log-item.html">
+<link rel="import" href="shared-styles.html">
+
+<dom-module id="log-list">
+  <template>
+    <style include="shared-styles">
+      :host {
+        display: block;
+
+        padding: 10px;
+
+        position: relative;
+      }
+
+      #detail-fab {
+        bottom: 0;
+        position: absolute;
+        right: 0;
+      }
+    </style>
+
+    <iron-ajax
+      id="getLogsAjax"
+      url="https://us-central1-share-log-c2f07.cloudfunctions.net/api-api/api/logs"
+      headers="{{getLogsAjaxHeaders}}"
+      with-credentials
+      handle-as="json"
+      on-response="onGetLogs">
+    </iron-ajax>
+
+    <iron-list items="[[logs]]" as="log">
+      <template>
+        <log-item log="[[log]]"></log-item>
+      </template>
+    </iron-list>
+
+    <a id="detail-fab" href="[[rootPath]]log-detail"><paper-fab icon="add"></paper-fab></a>
+  </template>
+
+  <script>
+    class LogList extends Polymer.Element {
+      static get is() {
+        return 'log-list';
+      }
+
+      static get properties() {
+        return {
+          user: Object
+        };
+      }
+
+      connectedCallback() {
+        super.connectedCallback();
+
+        this.getLogs();
+      }
+
+      getLogs() {
+        this.user.getIdToken(true)
+            .then((idToken) => {
+              this.getLogsAjaxHeaders = {
+                Authorization: `Bearer ${idToken}`
+              };
+
+              this.$.getLogsAjax.generateRequest();
+            })
+            .catch((error) => {
+              console.log('getIdToken error', error);
+            });
+      }
+
+      onGetLogs(event) {
+        let res = event.detail.parseResponse();
+
+        if (res) {
+          this.logs = res;
+        }
+      }
+    }
+
+    window.customElements.define(LogList.is, LogList);
+  </script>
+</dom-module>

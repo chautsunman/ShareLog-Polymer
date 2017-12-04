@@ -1,0 +1,121 @@
+<link rel="import" href="../bower_components/polymer/polymer-element.html">
+<link rel="import" href="../bower_components/polymerfire/firebase-document.html">
+<link rel="import" href="../bower_components/iron-form/iron-form.html">
+<link rel="import" href="../bower_components/paper-input/paper-input.html">
+<link rel="import" href="../bower_components/paper-button/paper-button.html">
+<link rel="import" href="shared-styles.html">
+
+<dom-module id="log-detail">
+  <template>
+    <style include="shared-styles">
+      :host {
+        display: block;
+
+        padding: 10px;
+      }
+    </style>
+
+    <app-route
+        route="[[route]]"
+        pattern="/:logId"
+        data="{{routeData}}"
+        tail="{{subroute}}"></app-route>
+
+    <firebase-document
+      id="logDoc"
+      data="[[log]]">
+    </firebase-document>
+
+    <iron-form id="form">
+      <form>
+        <paper-input
+          value="{{log.title}}"
+          required
+          label="Title">
+        </paper-input>
+
+        <paper-button on-click="save" raised>Save</paper-button>
+      </form>
+    </iron-form>
+  </template>
+
+  <script>
+    class LogDetail extends Polymer.Element {
+      static get is() {
+        return 'log-detail';
+      }
+
+      static get properties() {
+        return {
+          user: Object,
+          route: Object,
+          routeData: Object,
+          subroute: String,
+          create: {
+            type: Boolean,
+            computed: 'computeCreate(routeData.logId)',
+          },
+          logPath: {
+            type: String,
+            computed: 'computeLogPath(user.uid, routeData.logId)',
+            observer: '_logPathChanged'
+          },
+          log: {
+            type: Object,
+            value: function() { return {}; },
+            observer: '_logChanged'
+          }
+        };
+      }
+
+      ready() {
+        super.ready();
+
+        this.$.form.addEventListener('iron-form-presubmit', this._onPreSubmit.bind(this));
+      }
+
+      computeCreate(logId) {
+        return !logId;
+      }
+
+      computeLogPath(uid, logId) {
+        return logId ? `/log/${uid}/${logId}` : null;
+      }
+
+      _logPathChanged(logPath) {
+        if (logPath) {
+          this.$.logDoc.getStoredValue(logPath)
+              .then((log) => {
+                this.log = log;
+              });
+        } else {
+          this.log = {};
+        }
+      }
+
+      _logChanged(log) {
+        console.log(log);
+      }
+
+      save() {
+        this.$.form.submit();
+      }
+
+      _onPreSubmit(event) {
+        event.preventDefault();
+
+        console.log(this.log);
+
+        this.$.logDoc.saveValue(`/log/${this.user.uid}`, this.routeData.logId)
+            .then(() => {
+              location.href = '/log-list';
+            })
+            .catch((error) => {
+              console.log('saveValue error', error);
+            });
+      }
+    }
+
+    window.customElements.define(LogDetail.is, LogDetail);
+  </script>
+</dom-module>
