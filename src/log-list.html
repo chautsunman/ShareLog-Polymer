@@ -26,14 +26,14 @@
 
     <iron-ajax
       id="getLogsAjax"
-      url="https://us-central1-share-log-c2f07.cloudfunctions.net/api-api/api/logs"
+      url="http://localhost:8080/api/logs"
       headers="{{getLogsAjaxHeaders}}"
       with-credentials
       handle-as="json"
       on-response="onGetLogs">
     </iron-ajax>
 
-    <iron-list items="[[logs]]" as="log">
+    <iron-list items="[[logsArray]]" as="log">
       <template>
         <log-item log="[[log]]"></log-item>
       </template>
@@ -50,7 +50,15 @@
 
       static get properties() {
         return {
-          user: Object
+          user: Object,
+          logs: {
+            type: Object,
+            value: function() { return {}; },
+            observer: '_logsChanged'
+          },
+          logsArray: {
+            type: Array
+          }
         };
       }
 
@@ -80,6 +88,16 @@
         if (res) {
           this.logs = res;
         }
+      }
+
+      _logsChanged(logs) {
+        let logsArray = [];
+
+        for (let logId in logs) {
+          logsArray.push(logs[logId]);
+        }
+
+        this.logsArray = logsArray;
       }
     }
 
