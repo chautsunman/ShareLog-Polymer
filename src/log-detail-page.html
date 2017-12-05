@@ -1,0 +1,42 @@
+<link rel="import" href="../bower_components/polymer/polymer-element.html">
+<link rel="import" href="log-detail.html">
+<link rel="import" href="shared-styles.html">
+
+<dom-module id="log-detail-page">
+  <template>
+    <style include="shared-styles">
+      :host {
+        display: block;
+
+        padding: 10px;
+      }
+    </style>
+
+    <app-route
+        route="[[route]]"
+        pattern="/:logId"
+        data="{{routeData}}"
+        tail="{{subroute}}"></app-route>
+
+    <log-detail user="[[user]]" log-id="[[routeData.logId]]"></log-detail>
+  </template>
+
+  <script>
+    class LogDetailPage extends Polymer.Element {
+      static get is() {
+        return 'log-detail-page';
+      }
+
+      static get properties() {
+        return {
+          user: Object,
+          route: Object,
+          routeData: Object,
+          subroute: String
+        };
+      }
+    }
+
+    window.customElements.define(LogDetailPage.is, LogDetailPage);
+  </script>
+</dom-module>

@@ -2,8 +2,8 @@
   "entrypoint": "index.html",
   "shell": "src/my-app.html",
   "fragments": [
-    "src/log-list.html",
-    "src/log-detail.html"
+    "src/log-list-page.html",
+    "src/log-detail-page.html"
   ],
   "sources": [
     "src/**/*",

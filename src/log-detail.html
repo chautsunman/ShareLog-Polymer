@@ -7,20 +7,6 @@
 
 <dom-module id="log-detail">
   <template>
-    <style include="shared-styles">
-      :host {
-        display: block;
-
-        padding: 10px;
-      }
-    </style>
-
-    <app-route
-        route="[[route]]"
-        pattern="/:logId"
-        data="{{routeData}}"
-        tail="{{subroute}}"></app-route>
-
     <firebase-document
       id="logDoc"
       data="[[log]]">
@@ -48,16 +34,14 @@
       static get properties() {
         return {
           user: Object,
-          route: Object,
-          routeData: Object,
-          subroute: String,
+          logId: String,
           create: {
             type: Boolean,
-            computed: 'computeCreate(routeData.logId)',
+            computed: 'computeCreate(logId)',
           },
           logPath: {
             type: String,
-            computed: 'computeLogPath(user.uid, routeData.logId)',
+            computed: 'computeLogPath(user.uid, logId)',
             observer: '_logPathChanged'
           },
           log: {
@@ -68,8 +52,8 @@
         };
       }
 
-      ready() {
-        super.ready();
+      connectedCallback() {
+        super.connectedCallback();
 
         this.$.form.addEventListener('iron-form-presubmit', this._onPreSubmit.bind(this));
       }
@@ -106,9 +90,9 @@
 
         console.log(this.log);
 
-        this.$.logDoc.saveValue(`/log/${this.user.uid}`, this.routeData.logId)
+        this.$.logDoc.saveValue(`/log/${this.user.uid}`, this.logId)
             .then(() => {
-              location.href = '/log-list';
+              location.href = '/log-list-page';
             })
             .catch((error) => {
               console.log('saveValue error', error);

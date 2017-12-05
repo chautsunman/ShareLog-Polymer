@@ -25,8 +25,8 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 <link rel="import" href="../bower_components/paper-icon-button/paper-icon-button.html">
 <link rel="import" href="my-icons.html">
 
-<link rel="lazy-import" href="log-list.html">
-<link rel="lazy-import" href="log-detail.html">
+<link rel="lazy-import" href="log-list-page.html">
+<link rel="lazy-import" href="log-detail-page.html">
 
 <dom-module id="my-app">
   <template>
@@ -96,7 +96,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         <app-drawer id="drawer" slot="drawer" swipe-open="[[narrow]]">
           <app-toolbar>Menu</app-toolbar>
           <iron-selector selected="[[page]]" attr-for-selected="name" class="drawer-list" role="navigation">
-            <a name="log-list" href="[[rootPath]]log-list">Home</a>
+            <a name="log-list-page" href="[[rootPath]]log-list-page">Home</a>
           </iron-selector>
         </app-drawer>
 
@@ -117,8 +117,8 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
               attr-for-selected="name"
               fallback-selection=""
               role="main">
-            <log-list name="log-list" user="[[user]]"></log-list>
-            <log-detail name="log-detail" user="[[user]]" route="[[subroute]]"></log-detail>
+            <log-list-page name="log-list-page" user="[[user]]"></log-list-page>
+            <log-detail-page name="log-detail-page" user="[[user]]" route="[[subroute]]"></log-detail-page>
           </iron-pages>
         </app-header-layout>
       </app-drawer-layout>
@@ -167,14 +167,14 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
       _userChanged(user) {
         if (user) {
-          this.page = 'log-list';
+          this.page = 'log-list-page';
         }
       }
 
       _routePageChanged(page) {
         // If no page was found in the route data, page will be an empty string.
         // Deault to 'view1' in that case.
-        this.page = page || 'log-list';
+        this.page = page || 'log-list-page';
 
         // Close a non-persistent drawer when the page & route are changed.
         let drawer = this.shadowRoot.querySelector('#drawer');

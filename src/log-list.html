@@ -1,45 +1,15 @@
 <link rel="import" href="../bower_components/polymer/polymer-element.html">
 <link rel="import" href="../bower_components/iron-list/iron-list.html">
-<link rel="import" href="../bower_components/iron-ajax/iron-ajax.html">
-<link rel="import" href="../bower_components/paper-fab/paper-fab.html">
-<link rel="import" href="../bower_components/iron-icons/iron-icons.html">
 <link rel="import" href="log-item.html">
 <link rel="import" href="shared-styles.html">
 
 <dom-module id="log-list">
   <template>
-    <style include="shared-styles">
-      :host {
-        display: block;
-
-        padding: 10px;
-
-        position: relative;
-      }
-
-      #detail-fab {
-        bottom: 0;
-        position: absolute;
-        right: 0;
-      }
-    </style>
-
-    <iron-ajax
-      id="getLogsAjax"
-      url="http://localhost:8080/api/logs"
-      headers="{{getLogsAjaxHeaders}}"
-      with-credentials
-      handle-as="json"
-      on-response="onGetLogs">
-    </iron-ajax>
-
-    <iron-list items="[[logsArray]]" as="log">
+    <iron-list items="[[logs]]" as="log">
       <template>
         <log-item log="[[log]]"></log-item>
       </template>
     </iron-list>
-
-    <a id="detail-fab" href="[[rootPath]]log-detail"><paper-fab icon="add"></paper-fab></a>
   </template>
 
   <script>
@@ -50,54 +20,10 @@
 
       static get properties() {
         return {
-          user: Object,
           logs: {
-            type: Object,
-            value: function() { return {}; },
-            observer: '_logsChanged'
-          },
-          logsArray: {
-            type: Array
+            type: Array,
           }
         };
-      }
-
-      connectedCallback() {
-        super.connectedCallback();
-
-        this.getLogs();
-      }
-
-      getLogs() {
-        this.user.getIdToken(true)
-            .then((idToken) => {
-              this.getLogsAjaxHeaders = {
-                Authorization: `Bearer ${idToken}`
-              };
-
-              this.$.getLogsAjax.generateRequest();
-            })
-            .catch((error) => {
-              console.log('getIdToken error', error);
-            });
-      }
-
-      onGetLogs(event) {
-        let res = event.detail.parseResponse();
-
-        if (res) {
-          this.logs = res;
-        }
-      }
-
-      _logsChanged(logs) {
-        let logsArray = [];
-
-        for (let logId in logs) {
-          logsArray.push(logs[logId]);
-        }
-
-        this.logsArray = logsArray;
       }
     }
 
