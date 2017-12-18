@@ -1,5 +1,5 @@
 <link rel="import" href="../bower_components/polymer/polymer-element.html">
-<link rel="import" href="../bower_components/polymerfire/firebase-document.html">
+<link rel="import" href="../bower_components/iron-ajax/iron-ajax.html">
 <link rel="import" href="../bower_components/iron-form/iron-form.html">
 <link rel="import" href="../bower_components/paper-input/paper-input.html">
 <link rel="import" href="../bower_components/paper-button/paper-button.html">
@@ -7,10 +7,23 @@
 
 <dom-module id="log-detail">
   <template>
-    <firebase-document
-      id="logDoc"
-      data="[[log]]">
-    </firebase-document>
+    <iron-ajax
+      id="getLogAjax"
+      url="http://localhost:8080/api/log"
+      with-credentials
+      handle-as="json"
+      on-response="onGetLog">
+    </iron-ajax>
+
+    <iron-ajax
+      id="updateLogAjax"
+      url="http://localhost:8080/api/log"
+      method="POST"
+      content-type="application/json"
+      with-credentials
+      handle-as="json"
+      on-response="onUpdateLog">
+    </iron-ajax>
 
     <iron-form id="form">
       <form>
@@ -34,15 +47,9 @@
       static get properties() {
         return {
           user: Object,
-          logId: String,
-          create: {
-            type: Boolean,
-            computed: 'computeCreate(logId)',
-          },
-          logPath: {
+          logId: {
             type: String,
-            computed: 'computeLogPath(user.uid, logId)',
-            observer: '_logPathChanged'
+            observer: '_logIdChanged'
           },
           log: {
             type: Object,
@@ -58,22 +65,32 @@
         this.$.form.addEventListener('iron-form-presubmit', this._onPreSubmit.bind(this));
       }
 
-      computeCreate(logId) {
-        return !logId;
-      }
+      _logIdChanged() {
+        this.log = {};
 
-      computeLogPath(uid, logId) {
-        return logId ? `/log/${uid}/${logId}` : null;
-      }
+        if (this.logId) {
+          this.user.getIdToken(true)
+              .then((idToken) => {
+                this.$.getLogAjax.url = `http://localhost:8080/api/log?logId=${this.logId}`;
+                this.$.getLogAjax.headers = {
+                  Authorization: `Bearer ${idToken}`
+                };
 
-      _logPathChanged(logPath) {
-        if (logPath) {
-          this.$.logDoc.getStoredValue(logPath)
-              .then((log) => {
-                this.log = log;
+                this.$.getLogAjax.generateRequest();
+              })
+              .catch((error) => {
+                console.log('getIdToken error', error);
               });
+        }
+      }
+
+      onGetLog(event) {
+        let res = event.detail.parseResponse();
+
+        if (res.success) {
+          this.log = res.log;
         } else {
-          this.log = {};
+          console.log('get log error');
         }
       }
 
@@ -88,15 +105,31 @@
       _onPreSubmit(event) {
         event.preventDefault();
 
-        console.log(this.log);
+        this.user.getIdToken(true)
+            .then((idToken) => {
+              this.$.updateLogAjax.body = {
+                logId: this.logId,
+                log: this.log
+              };
+              this.$.updateLogAjax.headers = {
+                Authorization: `Bearer ${idToken}`
+              };
 
-        this.$.logDoc.saveValue(`/log/${this.user.uid}`, this.logId)
-            .then(() => {
-              location.href = '/log-list-page';
+              this.$.updateLogAjax.generateRequest();
             })
             .catch((error) => {
-              console.log('saveValue error', error);
+              console.log('getIdToken error', error);
             });
+      }
+
+      onUpdateLog(event) {
+        let res = event.detail.parseResponse();
+
+        if (res.success) {
+          location.href = '/log-list-page';
+        } else {
+          console.log('update log error');
+        }
       }
     }
 
